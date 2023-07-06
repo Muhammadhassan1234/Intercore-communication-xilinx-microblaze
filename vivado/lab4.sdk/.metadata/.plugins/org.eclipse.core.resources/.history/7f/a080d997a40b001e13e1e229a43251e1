@@ -1,0 +1,53 @@
+#include "xmbox.h"
+#include "xstatus.h"
+#include "xparameters.h"
+#include <string.h>
+
+/************************** Constant Definitions *****************************/
+#define HELLO_SIZE 8    /* Maximum Size of the incoming Message */
+#define printf xil_printf    /* A smaller footprint printf */
+char data[6] = "hello"; /*A reference pattern string to compare at microblaze*/
+
+char RecvMsg[HELLO_SIZE]; /*An array to store incoming message from PS side*/
+
+int main(void)
+{
+    XMbox Mbox;
+    XMbox_Config *ConfigPtr;
+    ConfigPtr = XMbox_LookupConfig(XPAR_MBOX_0_DEVICE_ID );
+    XMbox_CfgInitialize(&Mbox, ConfigPtr, ConfigPtr->BaseAddress);
+
+    while(1)
+    {
+     int i,result;
+
+     /*Clear Recvmsg memory before receiving new message*/
+     memset(RecvMsg,0,HELLO_SIZE);
+
+     /*Read message packet from mailbox*/
+     XMbox_ReadBlocking(&Mbox, (u32*)(RecvMsg), HELLO_SIZE);
+
+     /*Analyze and compare incoming message with pattern*/
+    for (i=0;i<sizeof(data)-1;i++){
+        if (RecvMsg[i] != data[i]){
+            result=0;
+            break;
+        }
+        else {
+        	result = 1;
+        }
+    }
+
+    /*if pattern matches: return original message to ps side. otherwise send NTmatch*/
+    if (result == 1)
+    	{
+		XMbox_WriteBlocking(&Mbox, (u32*)(RecvMsg), HELLO_SIZE);
+		}
+	else if (result ==0)
+		{
+			XMbox_WriteBlocking(&Mbox, (u32*)((u8*)"Ntmatch"), HELLO_SIZE);
+		}
+	}
+
+    return 0;
+}

@@ -1,0 +1,49 @@
+#include "xmbox.h"
+#include "xstatus.h"
+#include "xparameters.h"
+#include <string.h>
+
+/************************** Constant Definitions *****************************/
+#define HELLO_SIZE 8    /* Size of the Hello Message */
+#define printf xil_printf    /* A smaller footprint printf */
+char data[6] = "hello";
+
+char RecvMsg[HELLO_SIZE];
+int main(void)
+{
+    XMbox Mbox;
+    XMbox_Config *ConfigPtr;
+    ConfigPtr = XMbox_LookupConfig(XPAR_MBOX_0_DEVICE_ID );
+    XMbox_CfgInitialize(&Mbox, ConfigPtr, ConfigPtr->BaseAddress);
+
+    while(1)
+    {
+     int i,result;
+     memset(RecvMsg,0,HELLO_SIZE);
+     XMbox_ReadBlocking(&Mbox, (u32*)(RecvMsg), HELLO_SIZE);
+//     XMbox_WriteBlocking(&Mbox, (u32*)((u8*)RecvMsg), HELLO_SIZE);
+
+    for (i=0;i<sizeof(data)-1;i++){
+        if (RecvMsg[i] != data[i]){
+            result=0;
+            break;
+        }
+        else {
+        	result = 1;
+        }
+
+
+    }
+
+    if (result == 1)
+    	{
+		XMbox_WriteBlocking(&Mbox, (u32*)((u8*)"match"), HELLO_SIZE);
+		}
+	else if (result ==0)
+		{
+			XMbox_WriteBlocking(&Mbox, (u32*)((u8*)"natch"), HELLO_SIZE);
+		}
+
+	}
+    return 0;
+}

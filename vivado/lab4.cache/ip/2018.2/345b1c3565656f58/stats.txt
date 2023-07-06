@@ -1,0 +1,4 @@
+NumberHits:1
+Timestamp: Thu Jun 15 16:49:08 UTC 2023
+VLNV: xilinx.com:ip:axi_uartlite:2.0
+SynthRuntime: 89
